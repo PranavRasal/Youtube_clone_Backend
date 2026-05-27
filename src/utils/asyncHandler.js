@@ -11,7 +11,7 @@
 // }
 
 
-const asyncHnadler = (Handler) => async (req, res, next) => {
+const asyncHandler = (Handler) => async (req, res, next) => {
     try{
         await Handler(req, res, next);
     }
@@ -25,4 +25,4 @@ const asyncHnadler = (Handler) => async (req, res, next) => {
 }
 
 
-export { asyncHnadler };
+export { asyncHandler };
