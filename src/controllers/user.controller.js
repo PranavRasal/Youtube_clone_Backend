@@ -1,6 +1,8 @@
 import {asyncHandler } from '../utils/asyncHandler.js';
 import {apiError} from '../utils/apiError.js';
 import {User} from '../models/user.model.js';
+import {uploadonCloudinary} from '../utils/cloudinary.js';
+import { apiResponse } from '../utils/apiResponse.js';
 
 const registerUser = asyncHandler( async( req , res)=>{
      // logic to register user
@@ -8,6 +10,7 @@ const registerUser = asyncHandler( async( req , res)=>{
 
       const{username , email , password , fullName } = req.body ;
       console.log(username , email)
+      
  
 
 
@@ -29,12 +32,52 @@ const registerUser = asyncHandler( async( req , res)=>{
             throw new apiError (409 , "User is already exists")
          }
 
-     // check for images and avatar
+     // check for images and avatar and check avtar
+
+         const avatarLocalPath = req.files?.avtar?.[0]?.path ;
+         const coverImageLocalPath = req.files?.coverImage?.[0]?.path ;
+
+
+            if(!avatarLocalPath){
+               throw new apiError (400 , "Avatar is required");
+            }
+
      // upload the image to cloudinary and get the url
+
+            const avatar = await uploadonCloudinary(avtarLocalPath);
+            const coverImage = await uploadonCloudinary(coverImageLocalPath);
+            if(!avatar){
+               throw new apiError (400 , "Avatar is required");
+            }
+
      // create object of user and save it to database
+
+           const user = await User.create({
+               username : username.toLowerCase() , 
+               email , 
+               password ,
+               fullName ,
+               avatar : avatar.url,
+               coverImage : coverImage?.url 
+            })
+
      // remove password and refreshTokens field from the response 
      // check user creation 
+
+            const userCreated = await User.findById(user._id).select(
+               "-password -refreshToken"
+            );
+
+            if(!userCreated){
+               throw new apiError (500 , "User creation failed")
+            }
+
      // return response to frontend
+
+     return res.status(201).json(
+      new apiResponse(200 , userCreated , "User created successfully")
+     )
+
 })
 
 export { registerUser }
