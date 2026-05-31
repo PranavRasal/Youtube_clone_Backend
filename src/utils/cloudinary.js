@@ -17,7 +17,14 @@ const uploadonCloudinary = async (localFilePath) => {
     return response;
     }
     catch(error){
-        fs.unlinkSync(localFilePath);// delete the local file after uploading to cloudinary
+        if (localFilePath) {
+            try {
+                fs.unlinkSync(localFilePath); // delete the local file after upload attempt
+            } catch (cleanupError) {
+                console.error("Cloudinary cleanup failed:", cleanupError.message);
+            }
+        }
+        console.error("Cloudinary upload failed:", error.message);
        return null;
     }
 
