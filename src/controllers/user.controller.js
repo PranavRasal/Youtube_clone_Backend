@@ -35,7 +35,12 @@ const registerUser = asyncHandler( async( req , res)=>{
      // check for images and avatar and check avtar
 
          const avatarLocalPath = req.files?.avatar?.[0]?.path ;
-         const coverImageLocalPath = req.files?.coverImage?.[0]?.path ;
+         // const coverImageLocalPath = req.files?.coverImage?.[0]?.path ;
+         let coverImageLocalPath ;
+         if(req.body && Array.isArray(req.body.coverImage) && 
+                     req.body.coverImage.length > 0){
+            coverImageLocalPath = req.files.coverImage[0].path ;
+            }
 
 
             if(!avatarLocalPath){
@@ -58,7 +63,7 @@ const registerUser = asyncHandler( async( req , res)=>{
                password ,
                fullName ,
                avatar : avatar.url,
-               coverImage : coverImage?.url 
+               coverImage : coverImage?.url || ""
             })
 
      // remove password and refreshTokens field from the response 

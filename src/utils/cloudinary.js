@@ -9,17 +9,19 @@ cloudinary.config({
 
 const uploadonCloudinary = async (localFilePath) => {
     try{
-       if(!localFilePath) return null ; 
+     if(!localFilePath) return null ; 
     const response = await cloudinary.uploader.upload(localFilePath , {
         resource_type : 'auto'
     })
-    console.log(response.url);
+    // console.log(response.url);
+    fs.unlinkSync(localFilePath); // delete the local file after successful upload
     return response;
     }
     catch(error){
         if (localFilePath) {
             try {
-                fs.unlinkSync(localFilePath); // delete the local file after upload attempt
+             fs.unlinkSync(localFilePath); // delete the local file after upload 
+             // attempt
             } catch (cleanupError) {
                 console.error("Cloudinary cleanup failed:", cleanupError.message);
             }

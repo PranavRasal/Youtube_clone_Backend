@@ -35,9 +35,10 @@ const userSchema = new Schema({
 
     coverImage :{
         type : String , //cloudinary url 
+        default : ""
     },
 
-    watchHistory :[
+    watchHistory :[   
         {
             type : Schema.Types.ObjectId ,
             ref : "Video"
@@ -61,14 +62,13 @@ const userSchema = new Schema({
 //  compare the password when we are trying to login the user   
 
 
-userSchema.pre("save" , async function (next){ 
+userSchema.pre("save" , async function (){ 
 /*  this refers to when we create a new user document or update the password of 
     an existing user document , then only we will hash the password and save it to
     the database with the help of bcrypt package */
 
-    if (!this.isModified("password")) return next();
+    if (!this.isModified("password")) return;
     this.password = await bcrypt.hash(this.password , 10)
-    next();
 })
 
 userSchema.methods.isPasswordCorrect = async function (password){
