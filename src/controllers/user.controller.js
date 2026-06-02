@@ -4,6 +4,24 @@ import {User} from '../models/user.model.js';
 import {uploadonCloudinary} from '../utils/cloudinary.js';
 import { apiResponse } from '../utils/apiResponse.js';
 
+const generateAccessTokenAndRefreshToken = async (userId) =>{
+   try{
+   
+      const user = await User.findById(userId);
+      const accessToken = user.generateAccessToken();
+      const refreshToken = user.generateRefreshToken();
+
+      user.refreshToken = refreshToken ;
+      await user.save({validateBeforeSave : false});
+
+      return { accessToken , refreshToken} ;
+
+   }catch(error){
+      throw new apiError(500 , "something went to wrong while generating access token and refresh tokrn")
+   }
+
+}
+
 const registerUser = asyncHandler( async( req , res)=>{
      // logic to register user
      // get user from frontend 
@@ -85,4 +103,68 @@ const registerUser = asyncHandler( async( req , res)=>{
 
 })
 
-export { registerUser }
+const loginUser = asyncHandler(async (req , res) =>{
+   // for login we need
+   // input email and password for user 
+
+   const {email , password} = req.body ;
+
+   if (!email || !password){
+      throw new apiError(400 , "Email and password are required");
+   }
+
+
+
+   // check user are exist or not 
+
+   const user = await User.findOne({
+      email 
+   })
+
+   if(!user){
+      throw new apiError(404 , "User not Found");
+   }
+
+   const isPasswordMatch = await user.isPasswordCorrect(password);
+
+   if(!isPasswordMatch){
+      throw new apiError(401 , "Invalid credentials")
+   }
+
+
+
+   // if user exit generate access token and refresh token
+
+   const { accessToken , refreshToken} = await generateAccessTokenAndRefreshToken(user._id);
+
+   const loggedInUser = await User.findById(user._id).select(
+      "-password -refreshToken"
+   )
+
+
+   // send cookies 
+   //    // return response to frontend
+  
+   const option = {
+      httpOnly : true ,
+      secure : true
+   }
+
+   return res
+   .status(200)
+   .cookie("accessToken" , accessToken , option)
+   .cookie("refreshToken" , refreshToken , option)
+   .json(
+      new apiResponse(
+         200 ,
+         "User logged in successfully",
+         loggedInUser
+      )
+   )
+
+})
+
+export {
+   registerUser ,
+   loginUser
+   }
