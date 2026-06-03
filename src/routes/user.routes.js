@@ -5,7 +5,7 @@ import { verifyJWT } from '../middlewares/auth.middleware.js';
 const router = Router();
 
 // Controllers import
-import { registerUser , loginUser , logoutUser} from '../controllers/user.controller.js';
+import { registerUser , loginUser , logoutUser , refreshaccessToken } from '../controllers/user.controller.js';
 
 // Routes
 router.route("/register").post(
@@ -26,5 +26,6 @@ router.route("/login").post(loginUser);
 
 // secured route 
 router.route("/logout").post( verifyJWT , logoutUser)
+router.route("/refresh-token").post(refreshaccessToken)
 
 export default router ;

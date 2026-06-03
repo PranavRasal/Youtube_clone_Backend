@@ -98,8 +98,9 @@ userSchema.methods.generateRefreshToken = function(){
     // this refers to the user document for which we are generating the token  
 
     return  jwt.sign(
-        {   _id : this._id     ,  username : this.username , // payload
-            email : this.email , fullName : this.fullName  },
+        {   _id : this._id    // payload 
+
+          },
 
         process.env.REFRESH_TOKEN_SECRET , // secret key
 
