@@ -422,6 +422,81 @@ const updatedUserCoverImage = asyncHandler(async(req, res)=>{
 
 })
 
+const getUserChannelProfile = asyncHandler(async(req , res)=>{
+   const {username } = req.params ;
+   if(!username?.trim()){
+      throw new apiError(400 , "Username is required")
+   }
+
+   const channel = await User.aggregate([
+      {
+         $match :{
+            username : username.toLowerCase().trim()
+         }
+      },
+      {
+         $lookup :{
+            from :"subscriptions" ,
+            localField :"_id" ,
+            foreignField : "channel" ,
+            as : "subscribers"
+         }
+      },{
+         $lookup :{
+            from : "subscriptions" ,
+            localField :"_id" ,
+            foreignField : "subscriber" ,
+            as : "subscribedTo"
+         }
+      },{
+         $addFields :{
+            Subscriber :{
+               $size : "$subscribers"
+            },
+            SubscribedTo :{
+               $size : "$subscribedTo"
+            },
+            isSubscribed : {
+               $cond :{
+                  if :{
+                     $in :[req.user?._id , "$subscribers.subscriber"]
+                  },
+                  then : true ,
+                  else : false
+               }
+            }
+         }
+      },
+      {
+         $project :{
+            Subscriber : 1 ,
+            SubscribedTo : 1 ,
+            isSubscribed : 1 ,
+            username : 1 ,
+            fullName : 1 ,
+            avatar : 1 ,
+            coverImage : 1 
+         } 
+      }
+   ])   
+
+   if(!channel?.length || channel?.length  === 0){
+      throw new apiError(404 , "Channel not found")
+   }
+
+   return res
+   .status(200)
+   .json(
+      new apiResponse(
+         200 ,
+         "Channel profile fetched successfully",
+         channel[0]
+      )
+   )
+   
+})
+
+
 
 export {
    registerUser ,
