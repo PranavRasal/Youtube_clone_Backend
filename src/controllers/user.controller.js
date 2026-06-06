@@ -1,7 +1,7 @@
 import {asyncHandler } from '../utils/asyncHandler.js';
 import {apiError} from '../utils/apiError.js';
 import {User} from '../models/user.model.js';
-import {uploadonCloudinary} from '../utils/cloudinary.js';
+import {uploadonCloudinary, deleteFromCloudinary} from '../utils/cloudinary.js';
 import { apiResponse } from '../utils/apiResponse.js';
 import jwt from 'jsonwebtoken';
 
@@ -323,33 +323,44 @@ const updateAccountDetails = asyncHandler(async(req , res)=>{
 
 })
 
-const updatedUserAvatar = asyncHandler(async(req, res)=>{
-   const avtarLocalPath = req.file?.path ;
+const updatedUserAvatar = asyncHandler(async (req, res) => {
+   const avatarLocalPath = req.file?.path;
 
-   if(!avatarLocalPath){
-      throw new apiError(400 , "Avatar image is required") ;
+   if (!avatarLocalPath) {
+      throw new apiError(400, "Avatar image is required");
    }
 
-   const avatar = await uploadonCloudinary(avtarLocalPath) ;
+   const avatar = await uploadonCloudinary(avatarLocalPath);
 
-   if(!avatar.url){
-      throw new apiError(500 , "Something went wrong while uploading avatar on cloudinary")
+   if (!avatar?.url) {
+      throw new apiError(500, "Something went wrong while uploading avatar on cloudinary");
    }
- 
+
+   // delete old avatar from cloudinary if exist
+   const oldAvatarUrl = req.user?.avatar;
+   if (oldAvatarUrl) {
+   try{
+      const oldAvatarPublicId = oldAvatarUrl.split("/").pop().split(".")[0];
+      await deleteFromCloudinary(oldAvatarPublicId);
+      } catch (error) {
+      console.error("Failed to delete old avatar from Cloudinary:", error.message);
+   }
+   }
+
+   // update user avatar in database and return response to frontend
    const user = await User.findByIdAndUpdate(
-      req.User?._id ,
+      req.user._id,
       {
-         $set :{
-            avatar : avatar.url 
+         $set: {
+            avatar: avatar.url
          }
       },
       {
-         new : true
+         new: true
       }
-   ).select("-password -refreshToken")
+   ).select("-password -refreshToken");
 
-   return res
-   .status(200)
+   return res.status(200)
    .json(
       new apiResponse(
          200,
@@ -358,10 +369,11 @@ const updatedUserAvatar = asyncHandler(async(req, res)=>{
       )
    )
 
-})
+});
 
 
 const updatedUserCoverImage = asyncHandler(async(req, res)=>{
+   
    const coverImageLocalPath = req.file?.path ;
 
    if(!coverImageLocalPath){
@@ -369,13 +381,25 @@ const updatedUserCoverImage = asyncHandler(async(req, res)=>{
    }
 
    const coverImage = await uploadonCloudinary(coverImageLocalPath) ;
-
    if(!coverImage.url){
       throw new apiError(500 , "Something went wrong while uploading cover Image on cloudinary")
    }
- 
+
+   // delete old cover image from cloudinary if exist
+   const oldCoverImageUrl = req.user?.coverImage ;
+   if(oldCoverImageUrl){
+   try{
+      const oldCoverImagePublicId = oldCoverImageUrl.split("/").pop().split(".")[0];
+
+      await deleteFromCloudinary(oldCoverImagePublicId)
+   } catch (error) {
+         console.error("Failed to delete old cover image from Cloudinary:", error.message);
+      }
+   }
+
+ // update user cover image in database and return response to frontend
    const user = await User.findByIdAndUpdate(
-      req.User?._id ,
+      req.user._id ,
       {
          $set :{
             coverImage : coverImage.url 
