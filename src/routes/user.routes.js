@@ -5,7 +5,18 @@ import { verifyJWT } from '../middlewares/auth.middleware.js';
 const router = Router();
 
 // Controllers import
-import { registerUser , loginUser , logoutUser , refreshaccessToken } from '../controllers/user.controller.js';
+import {  
+        registerUser ,
+        loginUser ,
+        logoutUser ,
+        refreshaccessToken, 
+        changeCurrentUserPassword, 
+        getCurrentUSer, 
+        updateAccountDetails,
+        updatedUserAvatar,
+        updatedUserCoverImage, 
+        getUserChannelProfile
+    } from '../controllers/user.controller.js';
 
 // Routes
 router.route("/register").post(
@@ -25,7 +36,24 @@ router.route("/login").post(loginUser);
 
 
 // secured route 
+
 router.route("/logout").post( verifyJWT , logoutUser)
+
 router.route("/refresh-token").post(refreshaccessToken)
+
+router.route("/change-password").post(verifyJWT , changeCurrentUserPassword)
+
+router.route("/current-user").get(verifyJWT , getCurrentUSer)
+
+router.route("/update-account").patch(verifyJWT , updateAccountDetails)
+
+router.route("/avatar").patch(verifyJWT , upload.single("avatar") , updatedUserAvatar)
+
+router.route("/cover-image").patch(verifyJWT , upload.single("coverImage"), 
+updatedUserCoverImage)
+
+router.route("/c/:username").get(verifyJWT , getUserChannelProfile)
+
+router.route("/history").get(verifyJWT , getWatchHistory)
 
 export default router ;
