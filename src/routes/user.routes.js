@@ -15,7 +15,8 @@ import {
         updateAccountDetails,
         updatedUserAvatar,
         updatedUserCoverImage, 
-        getUserChannelProfile
+        getUserChannelProfile,
+        getWatchHistory
     } from '../controllers/user.controller.js';
 
 // Routes
