@@ -4,13 +4,15 @@ import { Router } from 'express'
 const router = Router();
 
 //controllers import
-import { createTweet, getAllTweets } from '../controllers/tweet.controller.js';
+import { createTweet, deleteTweet, getAllTweets, updateTweet } from '../controllers/tweet.controller.js';
 
 // routes
 router.use(verifyJWT) // all routes after this middleware will be protected
 
 router.route("/").post(createTweet);
-router.route("/user-tweets/:userid").get(getAllTweets)
+router.route("/user-tweets/:userid").get(getAllTweets);
+router.route("/tweet/:tweetid").post(updateTweet);
+router.route("/tweet/:tweetid").delete(deleteTweet);
 
 
 export default router ;

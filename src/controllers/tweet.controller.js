@@ -38,7 +38,50 @@ const getAllTweets = asyncHandler(async(req , res)=>{
     )
 })
 
+const updateTweet = asyncHandler(async(req , res)=>{
+    const { tweetid } = req.params ;
+    const { content } = req.body ;
+
+    if(!content.length || content.trim() === ""){
+        throw new apiError(400 , "Content is required");
+    }
+
+    const tweet = await Tweet.findByIdAndUpdate(
+        tweetid,
+        { content },
+        { new: true }
+    )
+
+    if(!tweet){
+        throw new apiError(404 , "Tweet not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(200 , "Tweet updated successfully" , tweet)
+    )
+})
+
+const deleteTweet = asyncHandler(async(req , res)=>{
+    const { tweetid } = req.params ;
+
+    const tweet = await Tweet.findByIdAndDelete(tweetid)
+
+    if(!tweet){
+        throw new apiError(404 , "Tweet not found");
+    }
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(200 , "Tweet deleted successfully" , tweet)
+    )
+})
+
 export {
     createTweet ,
-    getAllTweets
+    getAllTweets ,
+    updateTweet ,
+    deleteTweet
 }
