@@ -11,7 +11,7 @@ router.use(verifyJWT) // all routes after this middleware will be protected
 
 router.route("/").post(createTweet);
 router.route("/user-tweets/:userid").get(getAllTweets);
-router.route("/tweet/:tweetid").post(updateTweet);
+router.route("/tweet/:tweetid").patch(updateTweet);
 router.route("/tweet/:tweetid").delete(deleteTweet);
 
 
